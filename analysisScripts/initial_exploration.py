@@ -4,7 +4,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
-DATA_PATH = 'rawData/calhacks13_hardware_requests.csv'
+DATA_PATH = 'cleanedData/unique_requests.csv'
 
 hardwareRequests = pd.read_csv(DATA_PATH)
 
