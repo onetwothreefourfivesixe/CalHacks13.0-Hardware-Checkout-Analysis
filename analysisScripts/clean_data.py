@@ -23,8 +23,8 @@ from collections import Counter
 
 import pandas as pd
 
-REQUESTS_PATH = 'rawData/calhacks13_hardware_requests.csv'
-ITEMS_PATH = 'rawData/calhacks13_hardware_items.csv'
+REQUESTS_PATH = 'cleanedData/hardware_requests.csv'
+ITEMS_PATH = 'cleanedData/hardware_items.csv'
 OUTPUT_PATH = 'cleanedData/duplicate_requests.csv'
 UNIQUE_OUTPUT_PATH = 'cleanedData/unique_requests.csv'
 
@@ -45,7 +45,7 @@ def load_requests_with_parts(requestsPath: str, itemsPath: str) -> pd.DataFrame:
     if missing:
         raise ValueError(f'{missing} requests have no rows in the items file')
 
-    requests['hacker_key'] = requests['hacker_email'].str.strip().str.lower()
+    requests['hacker_key'] = requests['hacker_id']
     return requests.sort_values(['hacker_key', 'requested_at_pt']).reset_index(drop=True)
 
 
@@ -75,8 +75,7 @@ def find_duplicate_pairs(requests: pd.DataFrame, windowMinutes: int, rule: str) 
                 if relation is None or (rule == 'exact' and relation != 'identical'):
                     continue
                 pairs.append({
-                    'hacker_name': earlier['hacker_name'],
-                    'hacker_email': earlier['hacker_email'],
+                    'hacker_id': earlier['hacker_id'],
                     'earlier_request_id': earlier['request_id'],
                     'earlier_requested_at': earlier['requested_at_pt'],
                     'earlier_status': earlier['request_status'],
@@ -179,7 +178,7 @@ def main():
     print(f'Duplicate groups:   {pairs["duplicate_group"].nunique()}')
     print(f'Requests involved:  {len(flaggedRequests)} of {len(requests)}')
     print(f'Unique requests:    {len(unique)} ({len(requests) - len(unique)} duplicates dropped)')
-    print(f'Hackers involved:   {pairs["hacker_email"].nunique()}')
+    print(f'Hackers involved:   {pairs["hacker_id"].nunique()}')
     print('\nBy relation:')
     print(pairs['relation'].value_counts().to_string())
     print('\nStatus of the earlier request in each pair:')

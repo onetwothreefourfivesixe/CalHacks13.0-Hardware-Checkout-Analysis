@@ -6,10 +6,12 @@ An exploration of the hardware checkout system used at Cal Hacks 13.0 (October 2
 
 | File | What it holds |
 |---|---|
-| `rawData/calhacks13_hardware_requests.csv` | One row per request: who, when, status, and the items list |
-| `rawData/calhacks13_hardware_items.csv` | One row per unit requested, with item name and category |
-| `rawData/calhacks13_hardware_initial_inventory.csv` | Starting stock per item and category |
-| `cleanedData/` | Outputs of the duplicate-order pass (see below) |
+| `cleanedData/hardware_requests.csv` | One row per request: hacker id, when, status, and the items list |
+| `cleanedData/hardware_items.csv` | One row per unit requested, with item name and category |
+| `cleanedData/hardware_initial_inventory.csv` | Starting stock per item and category |
+| `cleanedData/duplicate_requests.csv`, `cleanedData/unique_requests.csv` | Outputs of the duplicate-order pass (see below) |
+
+The raw exports in `rawData/` contain hacker names, emails, and staff names, so that folder is git-ignored. `analysisScripts/anonymize_data.py` produces the de-identified copies above: each hacker becomes a stable `hacker_id` (keyed on email) and each staff member a `staff_id`, so per-person analysis still works without any names in the repository. The name-to-id mapping is written to `rawData/name_mapping.csv` and stays local.
 
 ## Findings so far
 
@@ -33,10 +35,11 @@ Note that the request side counts request lines, not units, so demand for bulk p
 
 ## Scripts
 
-All scripts run from the repository root and read from `rawData/`.
+All scripts run from the repository root and read from `cleanedData/`.
 
 | Script | Purpose |
 |---|---|
+| `analysisScripts/anonymize_data.py` | Builds the de-identified CSVs in `cleanedData/` from `rawData/` (needs the raw exports locally) |
 | `analysisScripts/initial_exploration.py` | Hourly histogram of request times; `plotData` and `binMinutes` control the subset and granularity |
 | `analysisScripts/explore_means.py` | Average units per request over time bins |
 | `analysisScripts/hardware_mapping.py` | Requests versus initial inventory per category, grouped bars |

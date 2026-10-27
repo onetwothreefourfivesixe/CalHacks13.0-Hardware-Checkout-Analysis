@@ -4,8 +4,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 
-DATA_PATH_CHECKED_OUT = 'rawData/calhacks13_hardware_items.csv'
-DATA_PATH_INIT = "rawData/calhacks13_hardware_initial_inventory.csv"
+DATA_PATH_CHECKED_OUT = 'cleanedData/hardware_items.csv'
+DATA_PATH_INIT = "cleanedData/hardware_initial_inventory.csv"
 
 hardwareRequests = pd.read_csv(DATA_PATH_CHECKED_OUT)
 hardwareInventory = pd.read_csv(DATA_PATH_INIT)
