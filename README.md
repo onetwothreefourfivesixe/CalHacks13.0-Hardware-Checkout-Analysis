@@ -9,9 +9,12 @@ An exploration of the hardware checkout system used at Cal Hacks 13.0 (October 2
 | `cleanedData/hardware_requests.csv` | One row per request: hacker id, when, status, and the items list |
 | `cleanedData/hardware_items.csv` | One row per unit requested, with item name and category |
 | `cleanedData/hardware_initial_inventory.csv` | Starting stock per item and category |
+| `cleanedData/checked_in_hackers_teams.csv` | One row per checked-in hacker: hacker id, team status, project, Devpost team size, hardware-hack flag |
 | `cleanedData/duplicate_requests.csv`, `cleanedData/unique_requests.csv` | Outputs of the duplicate-order pass (see below) |
 
 The raw exports in `rawData/` contain hacker names, emails, and staff names, so that folder is git-ignored. `analysisScripts/anonymize_data.py` produces the de-identified copies above: each hacker becomes a stable `hacker_id` (keyed on email) and each staff member a `staff_id`, so per-person analysis still works without any names in the repository. The name-to-id mapping is written to `rawData/name_mapping.csv` and stays local.
+
+`analysisScripts/anonymize_checked_in.py` applies the same mapping to the checked-in hackers export, which lists names but no emails. It links each name to its email through the raw request exports, so a checked-in hacker who requested hardware keeps the `hacker_id` used in the request tables. Hackers who never requested anything get new ids continuing the sequence, and those are appended to the mapping file. A few checked-in names belong to two different people; when one of those names also made a request, both rows share that request's id and `name_ambiguous` is set to `yes`.
 
 ## Findings so far
 
@@ -40,6 +43,7 @@ All scripts run from the repository root and read from `cleanedData/`.
 | Script | Purpose |
 |---|---|
 | `analysisScripts/anonymize_data.py` | Builds the de-identified CSVs in `cleanedData/` from `rawData/` (needs the raw exports locally) |
+| `analysisScripts/anonymize_checked_in.py` | Builds `cleanedData/checked_in_hackers_teams.csv`, reusing request `hacker_id`s and numbering the remaining hackers (run after `anonymize_data.py`) |
 | `analysisScripts/initial_exploration.py` | Hourly histogram of request times; `plotData` and `binMinutes` control the subset and granularity |
 | `analysisScripts/explore_means.py` | Average units per request over time bins |
 | `analysisScripts/hardware_mapping.py` | Requests versus initial inventory per category, grouped bars |
