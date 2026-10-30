@@ -1,4 +1,4 @@
-category,item,initial_quantity,current_quantity,source,created_at_pt,notes
+category,item_name,initial_quantity,current_quantity,source,created_at_pt,notes
 (none),830-point breadboard (solderless),14,14,director desk,2026-10-23 15:32,added from desk before reservations opened
 (none),Ethernet Cables,,100,director desk,2026-10-23 21:59,added from desk after reservations opened
 (none),ethernet,,1,director desk,2026-10-25 08:15,added from desk after reservations opened

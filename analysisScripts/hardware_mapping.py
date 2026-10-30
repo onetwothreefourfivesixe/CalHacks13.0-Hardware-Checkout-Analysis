@@ -15,6 +15,8 @@ hardwareInventory['requested_at_pt'] = pd.to_datetime(hardwareRequests['requeste
 
 # print(hardwareInventory.columns)
 
+# Each row of hardware_items.csv is one unit (unit_count is the whole request's
+# total, repeated on every row), so units are counted as rows, never summed.
 hardwareTypeRequests = hardwareRequests[['item_category']]
 hardwareTypeInventory = hardwareInventory[['category', 'initial_quantity']]
 
@@ -25,29 +27,29 @@ binFreq = pd.Timedelta(minutes=binMinutes)
 # Categorize and group. observed=False keeps empty bins as NaN so the line breaks
 # over gaps (e.g. overnight) instead of drawing a false connection across them.
 # hardwareRequests['time_bins'] = pd.cut(hardwareRequests['requested_at_pt'], bins=bins, right=False)
-groupedRequests = hardwareTypeRequests.groupby('item_category', observed=False).aggregate({'item_category': 'count'})
+groupedRequests = hardwareTypeRequests.groupby('item_category', observed=False).size().rename('requested_units').to_frame()
 groupedInventory = hardwareTypeInventory.groupby('category', observed=False).aggregate({'initial_quantity': 'sum'})
 # print(groupedRequests.head())
 
 # ---- Plot --------------------------------------------------------------------
 plotTitle = 'Hardware requested vs. initial inventory by category, Cal Hacks 13.0'
-outputPath = 'visualizations/requestsVsInventoryByCategory.png'
+outputPath = 'visualizations/hardwareDistributions/requestUnitsVsInventoryByCategory.png'
 
 # Join the two aggregates on category; categories with no requests (e.g. '(none)') drop out.
 comparison = pd.DataFrame({
-    'Request lines': groupedRequests['item_category'],
+    'Requested units': groupedRequests['requested_units'],
     'Initial inventory': groupedInventory['initial_quantity'],
-}).dropna(subset=['Request lines']).fillna(0)
-comparison = comparison.sort_values('Request lines', ascending=True)  # largest ends up on top
+}).dropna(subset=['Requested units']).fillna(0)
+comparison = comparison.sort_values('Requested units', ascending=True)  # largest ends up on top
 
-seriesColors = {'Request lines': '#2a78d6', 'Initial inventory': '#eb6834'}
+seriesColors = {'Requested units': '#2a78d6', 'Initial inventory': '#eb6834'}
 barHeight = 0.38
 yPositions = range(len(comparison))
 
 fig, ax = plt.subplots(figsize=(11, 8), dpi=150)
 requestBars = ax.barh(
-    [y + barHeight / 2 for y in yPositions], comparison['Request lines'],
-    height=barHeight - 0.04, color=seriesColors['Request lines'], label='Request lines',
+    [y + barHeight / 2 for y in yPositions], comparison['Requested units'],
+    height=barHeight - 0.04, color=seriesColors['Requested units'], label='Units requested',
 )
 inventoryBars = ax.barh(
     [y - barHeight / 2 for y in yPositions], comparison['Initial inventory'],

@@ -15,8 +15,10 @@ hardwareInventory['requested_at_pt'] = pd.to_datetime(hardwareRequests['requeste
 
 # print(hardwareInventory.columns)
 
-hardwareTypeRequests = hardwareRequests[['item_category']]
-hardwareTypeInventory = hardwareInventory[['category', 'initial_quantity']]
+# Each row of hardware_items.csv is one unit (unit_count is the whole request's
+# total, repeated on every row), so units are counted as rows, never summed.
+hardwareTypeRequests = hardwareRequests[['item_name', 'item_category']]
+hardwareTypeInventory = hardwareInventory[['item_name', 'category', 'initial_quantity']]
 
 binMinutes = 60
 binFreq = pd.Timedelta(minutes=binMinutes)
@@ -26,18 +28,18 @@ binFreq = pd.Timedelta(minutes=binMinutes)
 # over gaps (e.g. overnight) instead of drawing a false connection across them.
 # hardwareRequests['time_bins'] = pd.cut(hardwareRequests['requested_at_pt'], bins=bins, right=False)
 # Named aggregation gives the count its own column name, so the category only lives in the index
-groupedRequests = hardwareTypeRequests.groupby('item_category', observed=False).agg(request_lines=('item_category', 'count'))
+groupedRequests = hardwareTypeRequests.groupby('item_category', observed=False).agg(requested_units=('item_category', 'size'))
 groupedInventory = hardwareTypeInventory.groupby('category', observed=False).agg(initial_quantity=('initial_quantity', 'sum'))
 
 # Both frames are indexed by category, so merge on the indexes rather than by column name
 groupedTable = pd.merge(groupedRequests, groupedInventory, left_index=True, right_index=True, how='left')
 groupedTable.index.name = 'category'
-groupedTable['proportion of requests/inventory'] = (groupedTable['request_lines'] / groupedTable['initial_quantity']) * 100
+groupedTable['proportion of requests/inventory'] = (groupedTable['requested_units'] / groupedTable['initial_quantity']) * 100
 print(groupedTable.head())
 
 # ---- Plot --------------------------------------------------------------------
-plotTitle = 'Hardware requests as a share of initial inventory, Cal Hacks 13.0'
-outputPath = 'visualizations/requestShareOfInventoryByCategory.png'
+plotTitle = 'Requested units as a share of initial inventory, Cal Hacks 13.0'
+outputPath = 'visualizations/hardwareDistributions/requestUnitShareOfInventoryByCategory.png'
 
 # Horizontal bars sorted so the highest share sits on top; long names stay readable
 ratios = groupedTable['proportion of requests/inventory'].sort_values(ascending=True)
@@ -45,7 +47,7 @@ ratios = groupedTable['proportion of requests/inventory'].sort_values(ascending=
 fig, ax = plt.subplots(figsize=(10, 7), dpi=150)
 bars = ax.barh(ratios.index, ratios.values, color='#2a78d6', height=0.72)
 
-# Reference line where request lines equal starting stock
+# Reference line where requested units equal starting stock
 ax.axvline(100, color='#898781', linewidth=1, linestyle=(0, (4, 3)))
 ax.text(100, len(ratios) - 0.15, ' 100% of inventory', color='#898781', fontsize=8, va='bottom')
 
@@ -53,7 +55,7 @@ ax.text(100, len(ratios) - 0.15, ' 100% of inventory', color='#898781', fontsize
 ax.bar_label(bars, padding=4, fontsize=9, color='#52514e', fmt='%.0f%%')
 
 ax.set_title(plotTitle, loc='left', fontsize=14, fontweight='bold', color='#0b0b0b', pad=12)
-ax.set_xlabel('Request lines / initial inventory', color='#52514e')
+ax.set_xlabel('Requested units / initial inventory', color='#52514e')
 ax.set_ylabel('')
 ax.xaxis.set_major_formatter(plt.FuncFormatter(lambda value, _: f'{value:.0f}%'))
 
